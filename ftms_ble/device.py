@@ -8,7 +8,10 @@ from .const import (
     FitnessMachineStopCode,
     FitnessMachineTargetSettingFeature,
 )
+import logging
 import struct
+
+LOGGER = logging.getLogger(__name__)
 
 
 class FitnessMachineDevice:
