@@ -2,8 +2,11 @@ from bleak import BleakClient, BLEDevice
 from bleak_retry_connector import close_stale_connections, establish_connection
 from .const import (
     FTMS_FITNESS_MACHINE_CONTROL_POINT_CHARACTERISTIC_UUID,
+    FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID,
     FitnessMachineControlPointOperation,
+    FitnessMachineFeature,
     FitnessMachineStopCode,
+    FitnessMachineTargetSettingFeature,
 )
 import struct
 
@@ -12,21 +15,28 @@ class FitnessMachineDevice:
     _client: BleakClient
     _device: BLEDevice
 
-    @property
-    def rssi(self):
-        pass
+    _features: FitnessMachineFeature
+    _settings: FitnessMachineTargetSettingFeature
 
     @property
     def name(self):
-        pass
+        return self._device.name
 
     @property
     def address(self):
-        pass
+        return self._device.address
 
     @property
     def serial_number(self):
         pass
+
+    @property
+    def features(self):
+        return self._features
+
+    @property
+    def settings(self):
+        return self._settings
 
     @property
     def is_connected(self) -> bool:
@@ -39,6 +49,9 @@ class FitnessMachineDevice:
         self._device = ble_device
         self._client = None
 
+        self._features = FitnessMachineFeature(0)
+        self._settings = FitnessMachineTargetSettingFeature(0)
+
     async def connect(self):
         if self.is_connected:
             return
@@ -48,6 +61,8 @@ class FitnessMachineDevice:
         self._client = await establish_connection(
             BleakClient, self._device, self._device.name
         )
+
+        await self._update_features()
 
     async def disconnect(self):
         if not self.is_connected:
@@ -106,3 +121,9 @@ class FitnessMachineDevice:
             command,
             response=response,
         )
+
+    async def _update_features(self):
+        feature_data = await self._client.read_gatt_char(FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID)
+
+        self._features = FitnessMachineFeature(int.from_bytes(feature_data[0:4], "little"))
+        self._settings = FitnessMachineTargetSettingFeature(int.from_bytes(feature_data[4:8], "little"))
