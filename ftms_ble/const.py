@@ -99,3 +99,32 @@ class FitnessMachineControlPointResponse(IntEnum):
     INVALID_PARAMETER =         0x03
     OPERATION_FAILED =          0x04
     CONTROL_NOT_PERMITTED =     0x05
+
+
+class FitnessMachineStatusCode(IntEnum):
+    """
+    FTMS v1.0 section 4.17, Table 4.26
+    """
+    RESET =                                     0x01
+    STOPPED_OR_PAUSED_BY_USER =                 0x02
+    STOPPED_BY_SAFETY_KEY =                     0x03
+    STARTED_OR_RESUMED_BY_USER =                0x04
+    TARGET_SPEED_CHANGED =                      0x05
+    TARGET_INCLINE_CHANGED =                    0x06
+    TARGET_RESISTANCE_LEVEL_CHANGED =           0x07
+    TARGET_POWER_CHANGED =                      0x08
+    TARGET_HEART_RATE_CHANGED =                 0x09
+    TARGET_EXPENDED_ENERGY_CHANGED =            0x0A
+    TARGET_NUMBER_OF_STEPS_CHANGED =            0x0B
+    TARGET_NUMBER_OF_STRIDES_CHANGED =          0x0C
+    TARGET_DISTANCE_CHANGED =                   0x0D
+    TARGET_TRAINING_TIME_CHANGED =              0x0E
+    TARGET_TIME_IN_TWO_HEART_RATE_ZONES =       0x0F
+    TARGET_TIME_IN_THREE_HEART_RATE_ZONES =     0x10
+    TARGET_TIME_IN_FIVE_HEART_RATE_ZONES =      0x11
+    INDOOR_BIKE_SIMULATION_PARAMETERS_CHANGED = 0x12
+    WHEEL_CIRCUMFERENCE_CHANGED =               0x13
+    SPIN_DOWN_STATUS =                          0x14
+    TARGETED_CADENCE_CHANGED =                  0x15
+
+    CONTROL_PERMISSION_LOST =                   0xFF

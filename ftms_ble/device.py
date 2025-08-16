@@ -3,8 +3,10 @@ from bleak_retry_connector import close_stale_connections, establish_connection
 from .const import (
     FTMS_FITNESS_MACHINE_CONTROL_POINT_CHARACTERISTIC_UUID,
     FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID,
+    FTMS_FITNESS_MACHINE_STATUS_CHARACTERISTIC_UUID,
     FitnessMachineControlPointOperation,
     FitnessMachineFeature,
+    FitnessMachineStatusCode,
     FitnessMachineStopCode,
     FitnessMachineTargetSettingFeature,
 )
@@ -67,6 +69,11 @@ class FitnessMachineDevice:
 
         await self._update_features()
 
+        await self._client.start_notify(
+            FTMS_FITNESS_MACHINE_STATUS_CHARACTERISTIC_UUID,
+            self._on_ftms_status_event,
+        )
+
     async def disconnect(self):
         if not self.is_connected:
             return
@@ -105,6 +112,15 @@ class FitnessMachineDevice:
         return await self._send_ftms_command(
             FitnessMachineControlPointOperation.RESET,
         )
+
+    def _on_ftms_status_event(
+        self, client: BleakClient, data: bytearray
+    ):
+        print("Fitness machine status: {}", data)
+
+        status_code = FitnessMachineStatusCode(int.from_bytes(data[0:4], "little"))
+
+        return status_code
 
     async def _send_ftms_command(
         self,
