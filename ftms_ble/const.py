@@ -1,3 +1,4 @@
+# fmt: off
 from enum import IntEnum, IntFlag
 
 FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID = "00002acc-0000-1000-8000-00805f9b34fb"
