@@ -1,8 +1,11 @@
-from bleak import BleakClient
+from bleak import BleakClient, BLEDevice
+from bleak_retry_connector import close_stale_connections, establish_connection
 from .const import FitnessMachineStopCode
 
 
 class FitnessMachineDevice:
+    _client: BleakClient
+    _device: BLEDevice
 
     @property
     def rssi(self):
@@ -20,14 +23,30 @@ class FitnessMachineDevice:
     def serial_number(self):
         pass
 
-    def __init__(self, bluetooth_client: BleakClient):
-        self.client = bluetooth_client
+    @property
+    def is_connected(self) -> bool:
+        if self._client is None:
+            return False
+
+        return self._client.is_connected
+
+    def __init__(self, ble_device: BLEDevice):
+        self._device = ble_device
+        self._client = None
 
     async def connect(self):
-        pass
+        if self.is_connected:
+            return
+
+        await close_stale_connections(self._device)
+
+        self._client = await establish_connection(self._device)
 
     async def disconnect(self):
-        pass
+        if not self.is_connected:
+            return
+
+        await self._client.disconnect()
 
     async def start_resume(self):
         pass
