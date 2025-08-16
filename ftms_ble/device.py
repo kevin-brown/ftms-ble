@@ -84,7 +84,9 @@ class FitnessMachineDevice:
         )
 
     async def reset(self):
-        pass
+        return await self._send_ftms_command(
+            FitnessMachineControlPointOperation.RESET,
+        )
 
     async def _send_ftms_command(
         self,
