@@ -5,11 +5,14 @@ from .const import (
     FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID,
     FTMS_FITNESS_MACHINE_STATUS_CHARACTERISTIC_UUID,
     FitnessMachineControlPointOperation,
+    FitnessMachineDataField,
     FitnessMachineFeature,
     FitnessMachineStatusCode,
     FitnessMachineStopCode,
     FitnessMachineTargetSettingFeature,
 )
+from .data import FitnessMachineData
+from .events import DataChangedEvent, FitnessMachineEvent
 import logging
 import struct
 
@@ -22,6 +25,9 @@ class FitnessMachineDevice:
 
     _features: FitnessMachineFeature
     _settings: FitnessMachineTargetSettingFeature
+
+    _data: FitnessMachineData
+    _properties_ranges: dict[FitnessMachineDataField, range]
 
     @property
     def name(self):
@@ -44,18 +50,25 @@ class FitnessMachineDevice:
         return self._settings
 
     @property
+    def properties(self):
+        return self._properties
+
+    @property
     def is_connected(self) -> bool:
         if self._client is None:
             return False
 
         return self._client.is_connected
 
-    def __init__(self, ble_device: BLEDevice):
+    def __init__(self, ble_device: BLEDevice, on_change: callable[FitnessMachineEvent]):
         self._device = ble_device
         self._client = None
 
         self._features = FitnessMachineFeature(0)
         self._settings = FitnessMachineTargetSettingFeature(0)
+        self._data = FitnessMachineData(self._features, self._on_data_change)
+
+        self._on_change = on_change
 
     async def connect(self):
         if self.is_connected:
@@ -141,8 +154,16 @@ class FitnessMachineDevice:
             response=response,
         )
 
+    def _trigger_on_change(self, event: FitnessMachineEvent):
+        self._on_change(event)
+
+    def _on_data_change(self, event: DataChangedEvent):
+        self._trigger_on_change(event)
+
     async def _update_features(self):
         feature_data = await self._client.read_gatt_char(FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID)
 
         self._features = FitnessMachineFeature(int.from_bytes(feature_data[0:4], "little"))
         self._settings = FitnessMachineTargetSettingFeature(int.from_bytes(feature_data[4:8], "little"))
+
+        self._data.update_supported_features(self._features)

@@ -1,5 +1,5 @@
 # fmt: off
-from enum import IntEnum, IntFlag
+import enum
 
 FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID = "00002acc-0000-1000-8000-00805f9b34fb"
 FTMS_FITNESS_MACHINE_STATUS_CHARACTERISTIC_UUID = "00002ada-0000-1000-8000-00805f9b34fb"
@@ -7,7 +7,7 @@ FTMS_TRAINING_STATUS_CHARACTERISTIC_UUID = "00002ad3-0000-1000-8000-00805f9b34fb
 FTMS_FITNESS_MACHINE_CONTROL_POINT_CHARACTERISTIC_UUID = "00002ad9-0000-1000-8000-00805f9b34fb"
 
 
-class FitnessMachineFeature(IntFlag):
+class FitnessMachineFeature(enum.IntFlag):
     """
     FTMS v1.0 section 4.3.1.1, Table 4.3
     """
@@ -30,7 +30,7 @@ class FitnessMachineFeature(IntFlag):
     USER_DATA_RETENTION =               0b00000001_00000000_00000000
 
 
-class FitnessMachineTargetSettingFeature(IntFlag):
+class FitnessMachineTargetSettingFeature(enum.IntFlag):
     """
     FTMS v1.0 section 4.3.1.2, Table 4.4
     """
@@ -53,7 +53,7 @@ class FitnessMachineTargetSettingFeature(IntFlag):
     TARGETED_CADENCE_CONFIGURATION =                            0b00000001_00000000_00000000
 
 
-class FitnessMachineControlPointOperation(IntEnum):
+class FitnessMachineControlPointOperation(enum.IntEnum):
     """
     FTMS v1.0 section 4.16.1, Table 4.15
     """
@@ -82,7 +82,7 @@ class FitnessMachineControlPointOperation(IntEnum):
     RESPONSE_CODE =                                 0x80
 
 
-class FitnessMachineStopCode(IntEnum):
+class FitnessMachineStopCode(enum.IntEnum):
     """
     FTMS v1.0 section 4.16.2.9, Table 4.16
     """
@@ -90,7 +90,7 @@ class FitnessMachineStopCode(IntEnum):
     PAUSE = 0x02
 
 
-class FitnessMachineControlPointResponse(IntEnum):
+class FitnessMachineControlPointResponse(enum.IntEnum):
     """
     FTMS v1.0 section 4.16.2.22, Table 4.24
     """
@@ -101,7 +101,7 @@ class FitnessMachineControlPointResponse(IntEnum):
     CONTROL_NOT_PERMITTED =     0x05
 
 
-class FitnessMachineStatusCode(IntEnum):
+class FitnessMachineStatusCode(enum.IntEnum):
     """
     FTMS v1.0 section 4.17, Table 4.26
     """
@@ -128,3 +128,67 @@ class FitnessMachineStatusCode(IntEnum):
     TARGETED_CADENCE_CHANGED =                  0x15
 
     CONTROL_PERMISSION_LOST =                   0xFF
+
+
+class TreadmillDataFlags(enum.IntFlag):
+    """
+    FTMS v1.0 section 4.4.1.1, Table 4.5
+    """
+    MORE_DATA =                                           0b00000001
+    AVERAGE_SPEED =                                       0b00000010
+    TOTAL_DISTANCE =                                      0b00000100
+    INCLINATION_AND_RAMP_ANGLE =                          0b00001000
+    ELEVATION_GAIN =                                      0b00010000
+    INSTANTANEOUS_PACE =                                  0b00100000
+    AVERAGE_PACE =                                        0b01000000
+    EXPENDED_ENERGY =                                     0b10000000
+    HEART_RATE =                                 0b00000001_00000000
+    METABOLIC_EQUIVALENT =                       0b00000010_00000000
+    ELAPSED_TIME =                               0b00000100_00000000
+    REMAINING_TIME =                             0b00001000_00000000
+    FORCE_ON_BELT_AND_POWER_OUTPUT =             0b00010000_00000000
+
+
+class TreadmillDataField(enum.IntEnum):
+    INSTANTANEOUS_SPEED = enum.auto()
+    AVERAGE_SPEED = enum.auto()
+    TOTAL_DISTANCE = enum.auto()
+    INCLINATION = enum.auto()
+    RAMP_ANGLE_SETTING = enum.auto()
+    POSITIVE_ELEVATION_GAIN = enum.auto()
+    NEGATIVE_ELEVATION_GAIN = enum.auto()
+    INSTANTANEOUS_PACE = enum.auto()
+    AVERAGE_PACE = enum.auto()
+    TOTAL_ENERGY = enum.auto()
+    ENERGY_PER_HOUR = enum.auto()
+    ENERGY_PER_MINUTE = enum.auto()
+    HEART_RATE = enum.auto()
+    METABOLIC_EQUIVALENT = enum.auto()
+    ELAPSED_TIME = enum.auto()
+    REMAINING_TIME = enum.auto()
+    FORCE_ON_BELT = enum.auto()
+    POWER_OUTPUT = enum.auto()
+
+
+DATA_FIELDS_TO_SUPPORTED_FEATURES = {
+    TreadmillDataField.AVERAGE_SPEED: FitnessMachineFeature.AVERAGE_SPEED,
+    TreadmillDataField.TOTAL_DISTANCE: FitnessMachineFeature.TOTAL_DISTANCE,
+    TreadmillDataField.INCLINATION: FitnessMachineFeature.INCLINATION,
+    TreadmillDataField.RAMP_ANGLE_SETTING: FitnessMachineFeature.INCLINATION,
+    TreadmillDataField.POSITIVE_ELEVATION_GAIN: FitnessMachineFeature.ELEVATION_GAIN,
+    TreadmillDataField.NEGATIVE_ELEVATION_GAIN: FitnessMachineFeature.ELEVATION_GAIN,
+    TreadmillDataField.INSTANTANEOUS_PACE: FitnessMachineFeature.PACE,
+    TreadmillDataField.AVERAGE_PACE: FitnessMachineFeature.PACE,
+    TreadmillDataField.TOTAL_ENERGY: FitnessMachineFeature.EXPENDED_ENERGY,
+    TreadmillDataField.ENERGY_PER_HOUR: FitnessMachineFeature.EXPENDED_ENERGY,
+    TreadmillDataField.ENERGY_PER_MINUTE: FitnessMachineFeature.EXPENDED_ENERGY,
+    TreadmillDataField.HEART_RATE: FitnessMachineFeature.HEART_RATE_MEASUREMENT,
+    TreadmillDataField.METABOLIC_EQUIVALENT: FitnessMachineFeature.METABOLIC_EQUIVALENT,
+    TreadmillDataField.ELAPSED_TIME: FitnessMachineFeature.ELAPSED_TIME,
+    TreadmillDataField.REMAINING_TIME: FitnessMachineFeature.REMAINING_TIME,
+    TreadmillDataField.FORCE_ON_BELT: FitnessMachineFeature.FORCE_ON_BELT_AND_POWER_OUTPUT,
+    TreadmillDataField.POWER_OUTPUT: FitnessMachineFeature.FORCE_ON_BELT_AND_POWER_OUTPUT,
+}
+
+
+FitnessMachineDataField = TreadmillDataField
