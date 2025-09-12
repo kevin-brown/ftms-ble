@@ -5,6 +5,9 @@ from .const import FitnessMachineDataField, FitnessMachineStatusCode
 
 class FitnessMachineEvent(NamedTuple):
     type: str
+    data_field: any
+    old_value: any
+    new_value: any
 
 
 class DataChangedEvent(FitnessMachineEvent):
