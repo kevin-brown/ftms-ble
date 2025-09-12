@@ -1,5 +1,6 @@
 from bleak import BleakClient, BLEDevice
 from bleak_retry_connector import close_stale_connections, establish_connection
+from collections.abc import Callable
 from .const import (
     FTMS_FITNESS_MACHINE_CONTROL_POINT_CHARACTERISTIC_UUID,
     FTMS_FITNESS_MACHINE_FEATURE_CHARACTERISTIC_UUID,
@@ -12,7 +13,7 @@ from .const import (
     FitnessMachineTargetSettingFeature,
 )
 from .data import FitnessMachineData
-from .events import DataChangedEvent, FitnessMachineEvent
+from .events import DataChangedEvent, FitnessMachineEvent, FitnessMachineStatusChanged
 import logging
 import struct
 
@@ -28,6 +29,8 @@ class FitnessMachineDevice:
 
     _data: FitnessMachineData
     _properties_ranges: dict[FitnessMachineDataField, range]
+
+    _status: FitnessMachineStatusCode
 
     @property
     def name(self):
@@ -60,9 +63,15 @@ class FitnessMachineDevice:
 
         return self._client.is_connected
 
-    def __init__(self, ble_device: BLEDevice, on_change: callable[FitnessMachineEvent]):
+    @property
+    def status(self) -> FitnessMachineStatusCode:
+        return self._status
+
+    def __init__(self, ble_device: BLEDevice, on_change: Callable[[FitnessMachineEvent], None]):
         self._device = ble_device
         self._client = None
+
+        self._status = None
 
         self._features = FitnessMachineFeature(0)
         self._settings = FitnessMachineTargetSettingFeature(0)
@@ -133,7 +142,14 @@ class FitnessMachineDevice:
 
         status_code = FitnessMachineStatusCode(int.from_bytes(data[0:4], "little"))
 
-        return status_code
+        event = FitnessMachineStatusChanged(
+            type="status_changed",
+            data_field="status",
+            old_value=self._status,
+            new_value=status_code,
+        )
+
+        self._on_ftms_status_change(event)
 
     async def _send_ftms_command(
         self,
@@ -158,6 +174,9 @@ class FitnessMachineDevice:
         self._on_change(event)
 
     def _on_data_change(self, event: DataChangedEvent):
+        self._trigger_on_change(event)
+
+    def _on_ftms_status_change(self, event: FitnessMachineStatusChanged):
         self._trigger_on_change(event)
 
     async def _update_features(self):
